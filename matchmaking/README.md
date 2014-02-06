@@ -20,3 +20,11 @@ I've currently alleviated this problem by allowing people to match with themselv
 This, strangely enough, has created no-solution situations. The constraint I wrote
 must be broken. It is currently:
 For some i, for all j, the aggregate sum of c[i][j] * x[i][j] > the minimum of the set of c[i][j]
+
+
+#Ideas#
+I'm thinking about forgetting the linear solver and switchin to a genetic
+algorithm approach. I'll construct a graph consisted of independent partitions
+using DEAP and then use Sage to sum up the edges and give feedback back to
+DEAP. This doesn't promise me an optimal solution, but good enough might
+suffice.
