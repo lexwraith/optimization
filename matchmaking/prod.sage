@@ -140,7 +140,7 @@ for i in range(m):
 #NOT USEFUL FOR NUMPARTERS > 1
 for i in range(m):
 	for j in range(m):
-		p.add_constraint(x[i][j] == x[j][i])
+		#p.add_constraint(x[i][j] == x[j][i])
 		pass	
 
 #Constraint for a floor of satisfiability
