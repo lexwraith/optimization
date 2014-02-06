@@ -3,7 +3,7 @@
 ###Partitioning a Complete Graph into K Complete Sub Graphs###
 This is the hard one. There are algorithms out there, but how do I transform
 the process into a constraint under GLPK? The end product must be a linear
-equation.
+equation. I can't seem to make matches mutual/inclusive.
 
 
 ####Partitioning V into V/K where V%K!= 0####

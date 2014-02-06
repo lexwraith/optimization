@@ -68,6 +68,10 @@ def parseMultipleData(current,desired,norm=True):
 		D = np.matrix(normalize(desired))	
 	c = C*D.transpose()
 	c = [x for x in c.tolist()]
+	#I'm adding in this diagonal for the self-matching constraint.
+	m = len(c)
+	for i in range(m):
+		c[i][i] = -1337	#Magic number.
 	pprint(c)
 	return c
 
@@ -130,10 +134,10 @@ x = p.new_variable(binary = True,dim=2,name="Persons")
 for i in range(m):
 	p.add_constraint(sum([x[i][j] for j in range(m)]) == numPartners)
 	p.add_constraint(sum([x[j][i] for j in range(m)]) == numPartners)
-	if m % 2 == 0:
-		p.add_constraint(x[i][i] == 0)
-	else:
-		p.add_constraint(x[i][i] >= 0)
+
+#Partnering with self constraint
+#If uneven number of people, at most there can be num parters - 1 partnered with themselves.
+p.add_constraint(sum([x[i][i] for i in range(m)]) <= (numPartners - 1) * -1337)
 
 
 #Constraint such that the table must be symmetric
