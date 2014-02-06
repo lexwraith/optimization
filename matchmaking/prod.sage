@@ -58,8 +58,19 @@ def parseSingleData(data,normalize=False,binary=False):
 		pprint(c)
 		return c
 
-def parseMultipleData(dataArray,normalize=False):
-	
+def parseMultipleData(current,desired,norm=True):
+	"""
+	Meant for creating a cost matrix from a 'current attributes' against a
+	'desired attributes' matrix. Very specific.
+	"""
+	if(norm):
+		C = np.matrix(normalize(current))
+		D = np.matrix(normalize(desired))	
+	c = C*D.transpose()
+	c = [x for x in c.tolist()]
+	pprint(c)
+	return c
+
 #Input parameters here
 desired = [[0,10,0,0,0,10,0,5,5,0],
 			[4,2,1,10,6,5,7,8,9,3],
@@ -101,17 +112,9 @@ raw = [[16,10],
 
 names = ["Nick", "Gaithersburg", "Wichita", "Rishon", "LA", "Jerusalem", "Walla Walla", "Mike","Amherst"]
 numPartners = 1
-C = np.matrix(normalize(current))
-D = np.matrix(normalize(desired))
-
-
-
-c = C*D.transpose()
-c = [x for x in c.tolist()]
+c = parseMultipleData(current,desired,norm=True)
 m = len(c)
 n = len(c[0])
-for i in range(m):
-	c[i][i] = 0
 
 
 #Initialize
@@ -156,12 +159,10 @@ for i in range(m):
 
 #Objective function
 p.set_objective(sum([x[i][j] * c[i][j] for i in range(m) for j in range(n)]))
-#p.set_objective(None)
-#cProfile.run("p.solve()")
 
 #Printing results
 #p.show()
-#print 'Objective Value:', p.solve()
+print 'Objective Value:', p.solve()
 for i, v in p.get_values(x).iteritems():
 	print v.values()
 
