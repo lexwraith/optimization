@@ -4,7 +4,7 @@ import cProfile
 
 def normalize(matrix,factor=5):
 	"""
-	This function does s - meu/std normalization, and multiples by a factor
+	This function does x - meu/std normalization, and multiples by a factor
 	and then rounds to get an integer. 
 	"""
 	returnMatrix = []
@@ -26,22 +26,39 @@ def openCSV(filename,header=False):
 		for elem in f:
 			toReturn.append(f.readline().split(","))
 
-def parseSingleData(data,normalize=False):
+def parseSingleData(data,normalize=False,binary=False):
 	"""
-	Note that the rows is always the number of people, consequently
-	we make all matrices to be an M by M matrix, where M is the
-	number of rows, or len(data).
+	Returns a cost matrix derived from a single matrix where
+	each row is compared against the others for similarity, or really, differences.
+
+	When binary is true, we only check if they are the same. If they are not,
+	the c[i][j] will be set as 0 (no relation). Otherwise, it will be a positive
+	value that measures the difference in scores.
+
+	Note that the rows is always the people, consequently we make all matrices
+	to be an M by M matrix, where M is the number of rows, or len(data).
 	"""
 	if(normalize):
 		data = normalize(data)
 	m = len(data)
+	#Creating the cost matrix
 	c = [[0 for x in range(m)] for y in range(m)]
-	#Populating cost matrix for TIME matrices
-	for person in range(m):
-		for other in range(m):
-			c[person][other] = abs(raw[person][0] - raw[other][0]) + abs(raw[person][1] - raw[other][1])
-	pprint(c)
-	return c
+	if(binary):
+		#Checking for "binary" difference
+		for person in range(m):
+			for other in range(m):
+				c[person][other] = len(filter(lambda x: x == 0,[data[person][i] - data[other][i] for i in data[person]]))
+		pprint(c)
+		return c
+	else:
+		#Checking for "relational" difference
+		for person in range(m):
+			for other in range(m):
+				c[person][other] = abs(raw[person][0] - raw[other][0]) + abs(raw[person][1] - raw[other][1])
+		pprint(c)
+		return c
+
+def parseMultipleData(dataArray,normalize=False):
 	
 #Input parameters here
 desired = [[0,10,0,0,0,10,0,5,5,0],
