@@ -26,5 +26,5 @@ For some i, for all j, the aggregate sum of c[i][j] * x[i][j] > the minimum of t
 I'm thinking about forgetting the linear solver and switchin to a genetic
 algorithm approach. I'll construct a graph consisted of independent partitions
 using DEAP and then use Sage to sum up the edges and give feedback back to
-DEAP. This doesn't promise me an optimal solution, but good enough might
+DEAP. This doesn't promise me a global optimum, but good enough might
 suffice.

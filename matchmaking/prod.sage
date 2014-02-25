@@ -1,3 +1,66 @@
+"""
+This shit was written by Mike Nguyen.
+
+MIPS Solver
+
+Step 1) Create a cost matrix.
+		You can either write your own script to create a cost matrix given
+			some set of data you pulled off of Wordpress or Excel.
+
+		OR you can manually copy and paste it into the input variables below.
+
+		But we know that hard coding variables and/or magic numbers is a no no,
+			now don't we?
+
+		Note that as the code stands today 2/24/2014, I have included how I
+			generated the cost matrix. So that might not be valuable to you.
+
+Step 2)	Add in the names list. Each index of the list is what defines what each
+			index of the row AND column of the matrix is in terms of name.
+
+		E.G.:
+
+		if names[2] == "John"
+		then row[2] == "John"
+		and col[2] == "John"
+		and matrix[2][2] would either be 0 or 1, and represents if john is
+			paired with himself or not
+		and costmatrix[2][2] would mean how happy john would be with himself
+			or unhappy, depending on how you make the cost matrix.
+
+
+Step 3) Adjust the solver
+		Problems can be classified as either a MAXIMIZATION of utility problem
+			OR a MINIMIZATION OF COST problem.
+		
+		A MAXIMIZATION problem is a problem where the cost matrix represents how happy
+			someone would be with another person if paired, meaning it's not really a 
+			"cost" matrix, it should really be called a "utility" matrix.
+		
+		A MINIMIZATION problem is the exact opposite of that, and this is where the
+			aptly named cost matrix is appropriate.
+
+		So it depends on how you generate your cost/utility matrix. Do you want the
+			values to represent happiness, or unhappiness?
+
+		At this point the solver will create a binary matrix called "x" that is 
+			what holds the answers during the computation. Its end result is
+			what the answer actually is.
+
+Step 4) Adjust the constraints
+		See below. Each constraint is different and "prunes" the search tree
+			in finding the optimal solution. This requires some linear algebra
+			knowledge, but basically, the comments should guide you on some
+			of the common sense constraints you want to use.
+
+Step 5) Run "sage" on this file.
+		It will compile the sage file into a python file, and then execute
+			it using python.
+
+Step 6) Repeat the process and adjust as needed.
+
+"""
+
 from pprint import pprint
 import numpy as np
 import cProfile
@@ -117,30 +180,50 @@ raw = [[16,10],
 names = ["Nick", "Gaithersburg", "Wichita", "Rishon", "LA", "Jerusalem", "Walla Walla", "Mike","Amherst"]
 numPartners = 1
 c = parseMultipleData(current,desired,norm=True)
-m = len(c)
-n = len(c[0])
+#Snagging the number of rows here
+m = len(c) 
+#Snagging the number of columns here.
+n = len(c[0]) 
 
 
-#Initialize
+
+#Initialize the solver and adjust here
+#Adjust the maximization argument as needed. Leave it as GLPK.
+#GLPK uses a very slow method (the slowest in fact) but it guarantees the best
+#	solution.
 p = MixedIntegerLinearProgram(maximization=True, solver = "GLPK")
 
 
-#Creating the variable matrix
+#Creating the variable/answer matrix
+#This is where your answers are stored (temporarily) until all possibilities
+#	are examined.
 x = p.new_variable(binary = True,dim=2,name="Persons")
 
 
 #Adding row and column constraints (sum of row and column must equal numPartners)
 #Also people can't be paired with themselves (third one) unless odd number of people.
+#This means that the summation of any row or column in the answer matrix must equal
+#	numpartners, meaning every person has exactly num partners as partners.
 for i in range(m):
 	p.add_constraint(sum([x[i][j] for j in range(m)]) == numPartners)
 	p.add_constraint(sum([x[j][i] for j in range(m)]) == numPartners)
 
 #Partnering with self constraint
-#If uneven number of people, at most there can be num parters - 1 partnered with themselves.
+#This constraint prevents people from partnering with themselves,
+#	or at least, makes it extremely unlikely and not preferred.
+#	-1337 is a magic number, you can adjust based off of the range of your
+#	cost matrix.
+#That being said, there are cases where they MUST be paired with themselves,
+#	e.g. when you can't divide the group evenly, and this allows that to
+#	happen, albeit at great cost (-1337) at the time of this writing.
 p.add_constraint(sum([x[i][i] for i in range(m)]) <= (numPartners - 1) * -1337)
 
 
 #Constraint such that the table must be symmetric
+#This guarantees that everyone is recommended with someone else who is
+#	recommended with them. You can safely ignore it, as I have commented it
+#	out, but if you are dividing a group evenly into groups of 2, I would
+# 	probably turn it back on.
 #NOT USEFUL FOR NUMPARTERS > 1
 for i in range(m):
 	for j in range(m):
@@ -148,6 +231,9 @@ for i in range(m):
 		pass	
 
 #Constraint for a floor of satisfiability
+#This constraint makes it so that every person has some minimum of happiness
+#	or unhappiness. That way you won't have 10 extremely happy groups and 
+#	2 extremely miserable groups. It spreads out the love a bit more.
 #THIS ADDS A LOT OF TIME TO COMPUTATION
 for i in range(m):
 	#p.add_constraint(sum([c[i][j] * x[i][j] for j in range(m)]) >= min([f for f in c[i]]))
@@ -156,15 +242,21 @@ for i in range(m):
 
 #Constraint that the size of the set of all groups is m/numPartners
 #I have no idea how to do this. Partioning a graph into N complete graphs?
+#Can't do this in MIPS apparently. I might try it later.
 
-#for i in range(m):
-#	for j in range(m):
-#		p.add_constraint(print(x[i][j] * primes_first_n(m)))
 
 #Objective function
+#This is the function that determines the "happiness" or "unhappiness".
+#	Basically it takes each (i,j) in cost matrix and multiples it by (i,j)
+#	in the answer matrix. Notice the answer matrix, for any (i,j), is 0 or 1.
+#	It then sums up all of these numbers, resulting in an overall summation
+#	of either the net happiness or net unhappiness, depending how you made
+#	the cost matrix.
 p.set_objective(sum([x[i][j] * c[i][j] for i in range(m) for j in range(n)]))
 
 #Printing results
+#p.solve() is the main method - you only have to run it once.
+#	From there you can run p.show() and mess with the results as you want.
 #p.show()
 print 'Objective Value:', p.solve()
 for i, v in p.get_values(x).iteritems():
